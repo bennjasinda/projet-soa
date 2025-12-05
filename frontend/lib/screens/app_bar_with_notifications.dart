@@ -40,18 +40,15 @@ class AppBarWithNotifications extends StatelessWidget implements PreferredSizeWi
         ),
         centerTitle: true,
         actions: [
-         /* Query(
+          Query(
             options: QueryOptions(
-              document: gql(NotificationQueries.getUnreadNotificationsCount),
+              document: gql(NotificationQueries.getUnreadNotifications),
               fetchPolicy: FetchPolicy.cacheAndNetwork,
               pollInterval: const Duration(seconds: 30),
             ),
             builder: (QueryResult result, {refetch, fetchMore}) {
-              int unreadCount = 0;
-              
-              if (!result.isLoading && !result.hasException) {
-                unreadCount = result.data?['unreadNotificationsCount'] ?? 0;
-              }
+              final notifications = result.data?['unreadNotifications'] as List<dynamic>? ?? [];
+              final unreadCount = notifications.length;
 
               return Container(
                 margin: const EdgeInsets.only(right: 12),
@@ -120,7 +117,7 @@ class AppBarWithNotifications extends StatelessWidget implements PreferredSizeWi
                 ),
               );
             },
-          ),*/
+          ),
           if (actions != null) ...actions!,
         ],
         backgroundColor: Colors.transparent,

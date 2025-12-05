@@ -1,3 +1,4 @@
+// services/notification_queries.dart
 class NotificationQueries {
   static const String getNotifications = '''
     query GetNotifications {
@@ -7,10 +8,6 @@ class NotificationQueries {
         type
         read
         createdAt
-        user {
-          id
-          email
-        }
       }
     }
   ''';
@@ -23,10 +20,6 @@ class NotificationQueries {
         type
         read
         createdAt
-        user {
-          id
-          email
-        }
       }
     }
   ''';
@@ -55,4 +48,3 @@ class NotificationQueries {
     }
   ''';
 }
-

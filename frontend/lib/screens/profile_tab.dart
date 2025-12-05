@@ -123,24 +123,6 @@ class ProfileTab extends StatelessWidget {
                       ),
                       const Divider(),
                       ListTile(
-                        leading: const Icon(Icons.settings, color: Colors.teal),
-                        title: const Text('Paramètres'),
-                        trailing: const Icon(Icons.chevron_right),
-                        onTap: () {
-                          // TODO: Naviguer vers les paramètres
-                        },
-                      ),
-                      const Divider(),
-                      ListTile(
-                        leading: const Icon(Icons.help, color: Colors.teal),
-                        title: const Text('Aide'),
-                        trailing: const Icon(Icons.chevron_right),
-                        onTap: () {
-                          // TODO: Naviguer vers l'aide
-                        },
-                      ),
-                      const Divider(),
-                      ListTile(
                         leading: const Icon(Icons.logout, color: Colors.red),
                         title: const Text('Déconnexion', style: TextStyle(color: Colors.red)),
                         onTap: () async {

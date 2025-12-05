@@ -46,8 +46,19 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
+      backgroundColor: Colors.grey.shade50,
       appBar: AppBar(
-        title: const Text('Modifier le profil'),
+        title: const Text(
+          'Modifier le profil',
+          style: TextStyle(
+            fontSize: 18,
+            fontWeight: FontWeight.w600,
+          ),
+        ),
+        centerTitle: true,
+        elevation: 0,
+        backgroundColor: Colors.white,
+        foregroundColor: Colors.black,
       ),
       body: Mutation(
         options: MutationOptions(
@@ -55,7 +66,11 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
           onCompleted: (data) {
             if (data != null) {
               ScaffoldMessenger.of(context).showSnackBar(
-                const SnackBar(content: Text('Profil mis à jour avec succès !')),
+                SnackBar(
+                  content: const Text('Profil mis à jour avec succès !'),
+                  backgroundColor: Colors.green.shade600,
+                  behavior: SnackBarBehavior.floating,
+                ),
               );
               if (widget.onProfileUpdated != null) {
                 widget.onProfileUpdated!();
@@ -75,6 +90,7 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
                       : 'Erreur lors de la mise à jour',
                 ),
                 backgroundColor: Colors.red,
+                behavior: SnackBarBehavior.floating,
               ),
             );
             setState(() {
@@ -84,88 +100,119 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
         ),
         builder: (runMutation, result) {
           return SingleChildScrollView(
-            padding: const EdgeInsets.all(16),
+            padding: const EdgeInsets.all(20),
             child: Form(
               key: _formKey,
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.stretch,
                 children: [
-                  const SizedBox(height: 16),
-                  TextFormField(
-                    controller: _emailController,
-                    decoration: const InputDecoration(
-                      labelText: 'Email',
-                      prefixIcon: Icon(Icons.email),
-                    ),
-                    keyboardType: TextInputType.emailAddress,
-                    enabled: !_isLoading,
-                    validator: (value) {
-                      if (value == null || value.isEmpty) {
-                        return 'L\'email est requis';
-                      }
-                      if (!value.contains('@')) {
-                        return 'Email invalide';
-                      }
-                      return null;
-                    },
-                  ),
-                  const SizedBox(height: 16),
-                  TextFormField(
-                    controller: _firstNameController,
-                    decoration: const InputDecoration(
-                      labelText: 'Prénom',
-                      prefixIcon: Icon(Icons.person),
-                    ),
-                    enabled: !_isLoading,
-                    validator: (value) {
-                      if (value == null || value.isEmpty) {
-                        return 'Le prénom est requis';
-                      }
-                      return null;
-                    },
-                  ),
-                  const SizedBox(height: 16),
-                  TextFormField(
-                    controller: _lastNameController,
-                    decoration: const InputDecoration(
-                      labelText: 'Nom',
-                      prefixIcon: Icon(Icons.person_outline),
-                    ),
-                    enabled: !_isLoading,
-                    validator: (value) {
-                      if (value == null || value.isEmpty) {
-                        return 'Le nom est requis';
-                      }
-                      return null;
-                    },
-                  ),
-                  const SizedBox(height: 16),
-                  TextFormField(
-                    controller: _passwordController,
-                    decoration: InputDecoration(
-                      labelText: 'Nouveau mot de passe (optionnel)',
-                      prefixIcon: const Icon(Icons.lock),
-                      suffixIcon: IconButton(
-                        icon: Icon(
-                          _showPassword ? Icons.visibility : Icons.visibility_off,
+                  // Avatar
+                  Center(
+                    child: Container(
+                      width: 100,
+                      height: 100,
+                      margin: const EdgeInsets.only(bottom: 30),
+                      decoration: BoxDecoration(
+                        color: Colors.blue.shade100,
+                        shape: BoxShape.circle,
+                        border: Border.all(
+                          color: Colors.white,
+                          width: 4,
                         ),
-                        onPressed: () {
-                          setState(() {
-                            _showPassword = !_showPassword;
-                          });
-                        },
+                        boxShadow: [
+                          BoxShadow(
+                            color: Colors.black.withOpacity(0.1),
+                            blurRadius: 10,
+                          ),
+                        ],
+                      ),
+                      child: Icon(
+                        Icons.person,
+                        size: 50,
+                        color: Colors.blue.shade600,
                       ),
                     ),
-                    obscureText: !_showPassword,
-                    enabled: !_isLoading,
-                    validator: (value) {
-                      if (value != null && value.isNotEmpty && value.length < 6) {
-                        return 'Le mot de passe doit contenir au moins 6 caractères';
-                      }
-                      return null;
-                    },
                   ),
-                  const SizedBox(height: 32),
+
+                  // Formulaire
+                  Container(
+                    decoration: BoxDecoration(
+                      color: Colors.white,
+                      borderRadius: BorderRadius.circular(16),
+                      boxShadow: [
+                        BoxShadow(
+                          color: Colors.black.withOpacity(0.05),
+                          blurRadius: 10,
+                        ),
+                      ],
+                    ),
+                    padding: const EdgeInsets.all(20),
+                    child: Column(
+                      children: [
+                        _buildFormField(
+                          controller: _emailController,
+                          label: 'Email',
+                          icon: Icons.email_outlined,
+                          validator: (value) {
+                            if (value == null || value.isEmpty) {
+                              return 'L\'email est requis';
+                            }
+                            if (!value.contains('@')) {
+                              return 'Email invalide';
+                            }
+                            return null;
+                          },
+                        ),
+                        const SizedBox(height: 16),
+                        _buildFormField(
+                          controller: _firstNameController,
+                          label: 'Prénom',
+                          icon: Icons.person_outline,
+                          validator: (value) {
+                            if (value == null || value.isEmpty) {
+                              return 'Le prénom est requis';
+                            }
+                            return null;
+                          },
+                        ),
+                        const SizedBox(height: 16),
+                        _buildFormField(
+                          controller: _lastNameController,
+                          label: 'Nom',
+                          icon: Icons.person_outlined,
+                          validator: (value) {
+                            if (value == null || value.isEmpty) {
+                              return 'Le nom est requis';
+                            }
+                            return null;
+                          },
+                        ),
+                        const SizedBox(height: 16),
+                        _buildFormField(
+                          controller: _passwordController,
+                          label: 'Nouveau mot de passe (optionnel)',
+                          icon: Icons.lock_outline,
+                          isPassword: true,
+                          showPassword: _showPassword,
+                          onTogglePassword: () {
+                            setState(() {
+                              _showPassword = !_showPassword;
+                            });
+                          },
+                          validator: (value) {
+                            if (value != null && value.isNotEmpty && value.length < 6) {
+                              return 'Minimum 6 caractères';
+                            }
+                            return null;
+                          },
+                        ),
+                      ],
+                    ),
+                  ),
+
+                  const SizedBox(height: 30),
+
+                  // Bouton
                   ElevatedButton(
                     onPressed: _isLoading
                         ? null
@@ -179,7 +226,6 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
                                 'firstName': _firstNameController.text.trim(),
                                 'lastName': _lastNameController.text.trim(),
                               };
-                              // Ajouter le mot de passe seulement s'il est fourni
                               if (_passwordController.text.isNotEmpty) {
                                 variables['password'] = _passwordController.text;
                               }
@@ -187,19 +233,31 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
                             }
                           },
                     style: ElevatedButton.styleFrom(
-                      backgroundColor: Colors.teal,
-                      padding: const EdgeInsets.symmetric(vertical: 16),
+                      backgroundColor: const Color(0xFF6366F1),
+                      foregroundColor: Colors.white,
+                      padding: const EdgeInsets.symmetric(vertical: 18),
+                      shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(12),
+                      ),
+                      elevation: 0,
+                      shadowColor: const Color(0xFF6366F1).withOpacity(0.3),
                     ),
                     child: _isLoading
                         ? const SizedBox(
-                            height: 20,
-                            width: 20,
+                            height: 24,
+                            width: 24,
                             child: CircularProgressIndicator(
-                              strokeWidth: 2,
+                              strokeWidth: 3,
                               color: Colors.white,
                             ),
                           )
-                        : const Text('Enregistrer'),
+                        : const Text(
+                            'Enregistrer les modifications',
+                            style: TextStyle(
+                              fontSize: 16,
+                              fontWeight: FontWeight.w600,
+                            ),
+                          ),
                   ),
                 ],
               ),
@@ -209,5 +267,50 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
       ),
     );
   }
-}
 
+  Widget _buildFormField({
+    required TextEditingController controller,
+    required String label,
+    required IconData icon,
+    bool isPassword = false,
+    bool showPassword = false,
+    VoidCallback? onTogglePassword,
+    String? Function(String?)? validator,
+  }) {
+    return TextFormField(
+      controller: controller,
+      obscureText: isPassword && !showPassword,
+      decoration: InputDecoration(
+        labelText: label,
+        labelStyle: TextStyle(color: Colors.grey.shade600),
+        prefixIcon: Icon(icon, color: Colors.grey.shade500),
+        suffixIcon: isPassword
+            ? IconButton(
+                icon: Icon(
+                  showPassword ? Icons.visibility_outlined : Icons.visibility_off_outlined,
+                  color: Colors.grey.shade500,
+                ),
+                onPressed: onTogglePassword,
+              )
+            : null,
+        border: OutlineInputBorder(
+          borderRadius: BorderRadius.circular(12),
+          borderSide: BorderSide(color: Colors.grey.shade300),
+        ),
+        enabledBorder: OutlineInputBorder(
+          borderRadius: BorderRadius.circular(12),
+          borderSide: BorderSide(color: Colors.grey.shade300),
+        ),
+        focusedBorder: OutlineInputBorder(
+          borderRadius: BorderRadius.circular(12),
+          borderSide: const BorderSide(color: Color(0xFF6366F1), width: 2),
+        ),
+        filled: true,
+        fillColor: Colors.grey.shade50,
+        contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 16),
+      ),
+      enabled: !_isLoading,
+      validator: validator,
+    );
+  }
+}
