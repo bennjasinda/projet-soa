@@ -22,7 +22,7 @@ const mongoose = require('mongoose');
 const jwt = require('jsonwebtoken');
 const cron = require('node-cron');
 const { typeDefs, resolvers } = require('./graphql/schema');
-const { checkTasks1MinuteBefore, checkTasksDueToday } = require('./services/notificationService');
+const { checkTasks1MinuteBefore, checkTasksDueToday, checkTasksBeforeTimeLimit } = require('./services/notificationService');
 
 const app = express();
 
@@ -79,11 +79,12 @@ const startServer = async () => {
  * Démarre les tâches programmées pour les notifications automatiques
  */
 function startScheduledTasks() {
-  // Vérifier toutes les minutes pour les notifications 1 minute avant l'échéance
+  // Vérifier toutes les minutes pour les notifications avant le temps limite
   cron.schedule('* * * * *', async () => {
     await checkTasks1MinuteBefore();
+    await checkTasksBeforeTimeLimit();
   });
-  console.log('⏰ Tâche programmée : Vérification des tâches (1 min avant) - Toutes les minutes');
+  console.log('⏰ Tâche programmée : Vérification des tâches (temps limite) - Toutes les minutes');
 
   // Vérifier chaque matin à 8h00 pour les tâches du jour
   cron.schedule('0 8 * * *', async () => {

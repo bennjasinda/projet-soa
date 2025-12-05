@@ -7,6 +7,7 @@ class TaskQueries {
         decription
         completed
         datalimited
+        timelimited
         priority
         createdAt
         user {
@@ -23,18 +24,21 @@ class TaskQueries {
       \$decription: String!
       \$priority: Priority!
       \$datalimited: String
+      \$timelimited: String
     ) {
       createTask(
         title: \$title
         decription: \$decription
         priority: \$priority
         datalimited: \$datalimited
+        timelimited: \$timelimited
       ) {
         id
         title
         decription
         completed
         datalimited
+        timelimited
         priority
         createdAt
         user {
@@ -66,6 +70,7 @@ class TaskQueries {
       \$title: String
       \$decription: String
       \$datalimited: String
+      \$timelimited: String
       \$priority: Priority
     ) {
       updateTask(
@@ -73,6 +78,7 @@ class TaskQueries {
         title: \$title
         decription: \$decription
         datalimited: \$datalimited
+        timelimited: \$timelimited
         priority: \$priority
       ) {
         id
@@ -80,6 +86,7 @@ class TaskQueries {
         decription
         completed
         datalimited
+        timelimited
         priority
         createdAt
         user {

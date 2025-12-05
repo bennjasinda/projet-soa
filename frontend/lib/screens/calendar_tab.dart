@@ -435,6 +435,19 @@ class TableCalendar extends StatelessWidget {
     }).toList();
   }
 
+  Color? _getHighestPriorityColor(List<dynamic> tasks) {
+    if (tasks.isEmpty) return null;
+    for (var task in tasks) {
+      final priority = task['priority'] ?? 'MEDIUM';
+      if (priority == 'HIGH') return Colors.red;
+    }
+    for (var task in tasks) {
+      final priority = task['priority'] ?? 'MEDIUM';
+      if (priority == 'MEDIUM') return Colors.orange;
+    }
+    return Colors.green;
+  }
+
   @override
   Widget build(BuildContext context) {
     final firstDayOfMonth = DateTime(focusedDay.year, focusedDay.month, 1);
@@ -478,6 +491,7 @@ class TableCalendar extends StatelessWidget {
                 final isToday = isSameDay(date, DateTime.now());
                 final dayTasks = _getTasksForDay(date);
                 final hasTasks = dayTasks.isNotEmpty;
+                final priorityColor = _getHighestPriorityColor(dayTasks);
 
                 return Expanded(
                   child: GestureDetector(
@@ -506,15 +520,15 @@ class TableCalendar extends StatelessWidget {
                                   : FontWeight.normal,
                             ),
                           ),
-                          if (hasTasks)
+                          if (hasTasks && priorityColor != null)
                             Container(
                               margin: const EdgeInsets.only(top: 2),
-                              width: 4,
-                              height: 4,
+                              width: 6,
+                              height: 6,
                               decoration: BoxDecoration(
                                 color: isSelected || isToday
                                     ? Colors.white
-                                    : Colors.teal,
+                                    : priorityColor,
                                 shape: BoxShape.circle,
                               ),
                             ),

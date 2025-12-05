@@ -34,6 +34,7 @@ const rootTypeDefs = gql`
       title: String!
       decription: String!
       datalimited: String
+      timelimited: String
       priority: Priority!
     ): Task!
 
@@ -42,6 +43,7 @@ const rootTypeDefs = gql`
       title: String
       decription: String
       datalimited: String
+      timelimited: String
       priority: Priority
     ): Task!
 

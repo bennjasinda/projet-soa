@@ -41,7 +41,7 @@ const taskResolvers = {
   },
 
   Mutation: {
-    createTask: async (_parent, { title, decription, datalimited, priority }, context) => {
+    createTask: async (_parent, { title, decription, datalimited, timelimited, priority }, context) => {
       if (!context.userId) {
         throw new Error('Non authentifié');
       }
@@ -51,13 +51,14 @@ const taskResolvers = {
         decription,
         priority,
         datalimited: datalimited ? new Date(datalimited) : undefined,
+        timelimited: timelimited || undefined,
         user: context.userId,
       });
 
       return await task.populate(['user', 'sharedWith']);
     },
 
-    updateTask: async (_parent, { id, title, decription, datalimited, priority }, context) => {
+    updateTask: async (_parent, { id, title, decription, datalimited, timelimited, priority }, context) => {
       if (!context.userId) {
         throw new Error('Non authentifié');
       }
@@ -68,6 +69,9 @@ const taskResolvers = {
       if (priority !== undefined) updates.priority = priority;
       if (datalimited !== undefined) {
         updates.datalimited = datalimited ? new Date(datalimited) : null;
+      }
+      if (timelimited !== undefined) {
+        updates.timelimited = timelimited || null;
       }
 
       const { canAccess, task: existingTask } = await canAccessTask(id, context.userId);

@@ -13,6 +13,7 @@ const taskTypeDefs = gql`
     decription: String!
     completed: Boolean!
     datalimited: String
+    timelimited: String
     priority: Priority!
     user: User!
     sharedWith: [User!]!

@@ -93,8 +93,75 @@ async function checkTasksDueToday() {
   }
 }
 
+/**
+ * Envoie une notification avant le temps limite d'une tâche (si timelimited est défini)
+ */
+async function checkTasksBeforeTimeLimit() {
+  try {
+    const now = new Date();
+    const today = new Date(now.getFullYear(), now.getMonth(), now.getDate());
+    
+    // Trouver les tâches dont la date limite est aujourd'hui, avec un timelimited, et non complétées
+    const tasks = await Task.find({
+      datalimited: {
+        $gte: today,
+        $lt: new Date(today.getTime() + 24 * 60 * 60 * 1000), // Avant demain
+      },
+      timelimited: { $exists: true, $ne: null },
+      completed: false,
+    }).populate('user');
+
+    for (const task of tasks) {
+      if (!task.timelimited) continue;
+      
+      try {
+        // Parser le temps (format HH:mm)
+        const [hours, minutes] = task.timelimited.split(':').map(Number);
+        const taskDateTime = new Date(today);
+        taskDateTime.setHours(hours, minutes, 0, 0);
+        
+        // Calculer le temps avant l'échéance
+        const timeDiff = taskDateTime.getTime() - now.getTime();
+        const minutesBefore = Math.floor(timeDiff / (60 * 1000));
+        
+        // Envoyer une notification 15 minutes avant, 5 minutes avant, et 1 minute avant
+        const shouldNotify = (minutesBefore === 15 || minutesBefore === 5 || minutesBefore === 1) && minutesBefore > 0;
+        
+        if (shouldNotify) {
+          // Vérifier si une notification n'a pas déjà été envoyée pour cette tâche à ce moment
+          const existingNotification = await Notification.findOne({
+            userId: task.user._id || task.user,
+            taskId: task._id,
+            type: 'WARNING',
+            message: { $regex: task.timelimited },
+            createdAt: {
+              $gte: new Date(now.getTime() - 2 * 60 * 1000), // Dans les 2 dernières minutes
+            },
+          });
+
+          if (!existingNotification) {
+            const timeLabel = minutesBefore === 1 ? '1 minute' : `${minutesBefore} minutes`;
+            await Notification.create({
+              message: `⏰ "${task.title}" - Échéance dans ${timeLabel} (${task.timelimited})`,
+              type: 'WARNING',
+              userId: task.user._id || task.user,
+              taskId: task._id,
+            });
+            console.log(`📬 Notification envoyée pour la tâche "${task.title}" (${timeLabel} avant ${task.timelimited})`);
+          }
+        }
+      } catch (parseError) {
+        console.error(`❌ Erreur de parsing du temps pour la tâche "${task.title}":`, parseError);
+      }
+    }
+  } catch (error) {
+    console.error('❌ Erreur lors de la vérification des tâches (avant temps limite):', error);
+  }
+}
+
 module.exports = {
   checkTasks1MinuteBefore,
   checkTasksDueToday,
+  checkTasksBeforeTimeLimit,
 };
 

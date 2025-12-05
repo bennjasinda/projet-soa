@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:graphql_flutter/graphql_flutter.dart';
 import '../services/task_queries.dart';
 import '../components/add_task_form.dart';
+import '../components/app_bar_with_notifications.dart';
 import 'task_detail_screen.dart';
 import 'edit_task_screen.dart';
 
@@ -24,9 +25,10 @@ class _HomeTabState extends State<HomeTab> {
   }
 
   bool _isToday(String? dateStr) {
-    if (dateStr == null) return false;
+    if (dateStr == null || dateStr.isEmpty) return false;
     try {
-      String date = dateStr.split('T')[0];
+      // Extraire la date (avant le T ou l'espace)
+      String date = dateStr.split('T')[0].split(' ')[0];
       final now = DateTime.now();
       final today = DateTime(now.year, now.month, now.day);
       final parts = date.split('-');
@@ -41,7 +43,18 @@ class _HomeTabState extends State<HomeTab> {
             taskDate.day == today.day;
       }
     } catch (e) {
-      return false;
+      // En cas d'erreur, essayer de parser directement
+      try {
+        final parsedDate = DateTime.parse(dateStr);
+        final now = DateTime.now();
+        final today = DateTime(now.year, now.month, now.day);
+        final taskDate = DateTime(parsedDate.year, parsedDate.month, parsedDate.day);
+        return taskDate.year == today.year &&
+            taskDate.month == today.month &&
+            taskDate.day == today.day;
+      } catch (e2) {
+        return false;
+      }
     }
     return false;
   }
@@ -87,33 +100,43 @@ class _HomeTabState extends State<HomeTab> {
     final today = DateTime(now.year, now.month, now.day);
     
     int todayCount = 0;
-    int completedCount = 0;
-    int inProgressCount = 0;
+    int todayCompletedCount = 0;
+    int todayInProgressCount = 0;
+    int totalCompletedCount = 0;
+    int totalInProgressCount = 0;
     int totalCount = tasks.length;
 
     for (var task in tasks) {
       final datalimited = task['datalimited'];
       final isCompleted = task['completed'] ?? false;
+      final isToday = datalimited != null && _isToday(datalimited.toString());
       
-      if (datalimited != null && _isToday(datalimited.toString())) {
+      if (isToday) {
         todayCount++;
+        if (isCompleted) {
+          todayCompletedCount++;
+        } else {
+          todayInProgressCount++;
+        }
       }
       
       if (isCompleted) {
-        completedCount++;
+        totalCompletedCount++;
       } else {
-        inProgressCount++;
+        totalInProgressCount++;
       }
     }
 
     final completionRate = totalCount > 0 
-        ? (completedCount / totalCount * 100).round() 
+        ? (totalCompletedCount / totalCount * 100).round() 
         : 0;
 
     return {
       'todayCount': todayCount,
-      'completedCount': completedCount,
-      'inProgressCount': inProgressCount,
+      'todayCompletedCount': todayCompletedCount,
+      'todayInProgressCount': todayInProgressCount,
+      'totalCompletedCount': totalCompletedCount,
+      'totalInProgressCount': totalInProgressCount,
       'totalCount': totalCount,
       'completionRate': completionRate,
     };
@@ -142,6 +165,42 @@ class _HomeTabState extends State<HomeTab> {
         return 'Basse';
       default:
         return priority;
+    }
+  }
+
+  String _formatDate(String? dateString) {
+    if (dateString == null) return '';
+    try {
+      final date = dateString.split('T')[0];
+      final parts = date.split('-');
+      if (parts.length == 3) {
+        final taskDate = DateTime(
+          int.parse(parts[0]),
+          int.parse(parts[1]),
+          int.parse(parts[2]),
+        );
+        final now = DateTime.now();
+        final today = DateTime(now.year, now.month, now.day);
+        final tomorrow = today.add(const Duration(days: 1));
+        
+        if (taskDate.year == today.year && 
+            taskDate.month == today.month && 
+            taskDate.day == today.day) {
+          return 'Aujourd\'hui';
+        } else if (taskDate.year == tomorrow.year && 
+                   taskDate.month == tomorrow.month && 
+                   taskDate.day == tomorrow.day) {
+          return 'Demain';
+        } else {
+          // Formater comme "6 déc."
+          final months = ['', 'janv.', 'févr.', 'mars', 'avr.', 'mai', 'juin', 
+                         'juil.', 'août', 'sept.', 'oct.', 'nov.', 'déc.'];
+          return '${taskDate.day} ${months[taskDate.month]}';
+        }
+      }
+      return dateString;
+    } catch (e) {
+      return dateString;
     }
   }
 
@@ -179,9 +238,11 @@ class _HomeTabState extends State<HomeTab> {
         final stats = _calculateStats(tasks);
         final filteredTasks = _filterTasks(tasks);
 
-        return Column(
-          children: [
-            // Statistiques
+        return Scaffold(
+          appBar: const AppBarWithNotifications(title: 'TaskFlow'),
+          body: Column(
+            children: [
+              // Statistiques
             Container(
               padding: const EdgeInsets.all(16),
               color: Colors.white,
@@ -196,45 +257,80 @@ class _HomeTabState extends State<HomeTab> {
                     ),
                   ),
                   const SizedBox(height: 16),
-                  // Cartes statistiques
-                  Row(
-                    children: [
-                      Expanded(
-                        child: _StatCard(
-                          icon: Icons.assignment,
-                          iconColor: Colors.blue,
-                          value: '${stats['totalCount']}',
-                          label: 'Total',
-                        ),
-                      ),
-                      const SizedBox(width: 12),
-                      Expanded(
-                        child: _StatCard(
-                          icon: Icons.check_circle,
-                          iconColor: Colors.green,
-                          value: '${stats['completedCount']}',
-                          label: 'Terminées',
-                        ),
-                      ),
-                      const SizedBox(width: 12),
-                      Expanded(
-                        child: _StatCard(
-                          icon: Icons.access_time,
-                          iconColor: Colors.orange,
-                          value: '${stats['inProgressCount']}',
-                          label: 'En cours',
-                        ),
-                      ),
-                      const SizedBox(width: 12),
-                      Expanded(
-                        child: _StatCard(
-                          icon: Icons.warning,
-                          iconColor: Colors.red,
-                          value: '${stats['todayCount']}',
-                          label: 'Aujourd\'hui',
-                        ),
-                      ),
-                    ],
+                  // Cartes statistiques - Responsive
+                  LayoutBuilder(
+                    builder: (context, constraints) {
+                      final isWide = constraints.maxWidth > 600;
+                      return isWide
+                          ? Row(
+                              children: [
+                                Expanded(
+                                  child: _StatCard(
+                                    icon: Icons.today,
+                                    iconColor: Colors.blue,
+                                    value: '${stats['todayCount']}',
+                                    label: 'Aujourd\'hui',
+                                  ),
+                                ),
+                                const SizedBox(width: 12),
+                                Expanded(
+                                  child: _StatCard(
+                                    icon: Icons.check_circle,
+                                    iconColor: Colors.green,
+                                    value: '${stats['todayCompletedCount']}',
+                                    label: 'Terminées',
+                                  ),
+                                ),
+                                const SizedBox(width: 12),
+                                Expanded(
+                                  child: _StatCard(
+                                    icon: Icons.access_time,
+                                    iconColor: Colors.orange,
+                                    value: '${stats['todayInProgressCount']}',
+                                    label: 'En cours',
+                                  ),
+                                ),
+                              ],
+                            )
+                          : Column(
+                              children: [
+                                Row(
+                                  children: [
+                                    Expanded(
+                                      child: _StatCard(
+                                        icon: Icons.today,
+                                        iconColor: Colors.blue,
+                                        value: '${stats['todayCount']}',
+                                        label: 'Aujourd\'hui',
+                                      ),
+                                    ),
+                                    const SizedBox(width: 12),
+                                    Expanded(
+                                      child: _StatCard(
+                                        icon: Icons.check_circle,
+                                        iconColor: Colors.green,
+                                        value: '${stats['todayCompletedCount']}',
+                                        label: 'Terminées',
+                                      ),
+                                    ),
+                                  ],
+                                ),
+                                const SizedBox(height: 12),
+                                Row(
+                                  children: [
+                                    Expanded(
+                                      child: _StatCard(
+                                        icon: Icons.access_time,
+                                        iconColor: Colors.orange,
+                                        value: '${stats['todayInProgressCount']}',
+                                        label: 'En cours',
+                                      ),
+                                    ),
+                                  ],
+                                ),
+                              ],
+                            );
+                    },
                   ),
                   const SizedBox(height: 16),
                   // Taux de complétion
@@ -455,7 +551,9 @@ class _HomeTabState extends State<HomeTab> {
                                           ),
                                         ),
                                       const SizedBox(height: 8),
-                                      Row(
+                                      Wrap(
+                                        spacing: 8,
+                                        runSpacing: 4,
                                         children: [
                                           Container(
                                             padding: const EdgeInsets.symmetric(
@@ -476,6 +574,60 @@ class _HomeTabState extends State<HomeTab> {
                                               ),
                                             ),
                                           ),
+                                          if (task['datalimited'] != null) ...[
+                                            Container(
+                                              padding: const EdgeInsets.symmetric(
+                                                horizontal: 8,
+                                                vertical: 4,
+                                              ),
+                                              decoration: BoxDecoration(
+                                                color: Colors.blue.withOpacity(0.1),
+                                                borderRadius: BorderRadius.circular(4),
+                                              ),
+                                              child: Row(
+                                                mainAxisSize: MainAxisSize.min,
+                                                children: [
+                                                  const Icon(Icons.calendar_today, size: 12, color: Colors.blue),
+                                                  const SizedBox(width: 4),
+                                                  Text(
+                                                    _formatDate(task['datalimited']),
+                                                    style: const TextStyle(
+                                                      color: Colors.blue,
+                                                      fontSize: 11,
+                                                      fontWeight: FontWeight.w500,
+                                                    ),
+                                                  ),
+                                                ],
+                                              ),
+                                            ),
+                                          ],
+                                          if (task['timelimited'] != null) ...[
+                                            Container(
+                                              padding: const EdgeInsets.symmetric(
+                                                horizontal: 8,
+                                                vertical: 4,
+                                              ),
+                                              decoration: BoxDecoration(
+                                                color: Colors.purple.withOpacity(0.1),
+                                                borderRadius: BorderRadius.circular(4),
+                                              ),
+                                              child: Row(
+                                                mainAxisSize: MainAxisSize.min,
+                                                children: [
+                                                  const Icon(Icons.access_time, size: 12, color: Colors.purple),
+                                                  const SizedBox(width: 4),
+                                                  Text(
+                                                    task['timelimited'],
+                                                    style: const TextStyle(
+                                                      color: Colors.purple,
+                                                      fontSize: 11,
+                                                      fontWeight: FontWeight.w500,
+                                                    ),
+                                                  ),
+                                                ],
+                                              ),
+                                            ),
+                                          ],
                                         ],
                                       ),
                                     ],
@@ -532,6 +684,7 @@ class _HomeTabState extends State<HomeTab> {
                     ),
             ),
           ],
+        ),
         );
       },
     );

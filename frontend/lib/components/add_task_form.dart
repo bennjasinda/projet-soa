@@ -16,6 +16,7 @@ class _AddTaskFormState extends State<AddTaskForm> {
   final _descriptionController = TextEditingController();
   String _priority = 'MEDIUM';
   DateTime? _dueDate;
+  TimeOfDay? _dueTime;
   bool _isLoading = false;
 
   @override
@@ -86,30 +87,62 @@ class _AddTaskFormState extends State<AddTaskForm> {
                   : (value) => setState(() => _priority = value!),
             ),
             const SizedBox(height: 16),
-            TextFormField(
-              readOnly: true,
-              decoration: InputDecoration(
-                labelText: 'Date limite (optionnel)',
-                prefixIcon: const Icon(Icons.calendar_today),
-                border: const OutlineInputBorder(),
-                suffixText: _dueDate != null
-                    ? '${_dueDate!.day}/${_dueDate!.month}/${_dueDate!.year}'
-                    : null,
-              ),
-              enabled: !_isLoading,
-              onTap: () async {
-                final date = await showDatePicker(
-                  context: context,
-                  initialDate: DateTime.now(),
-                  firstDate: DateTime.now(),
-                  lastDate: DateTime(2030),
-                );
-                if (date != null) {
-                  setState(() {
-                    _dueDate = date;
-                  });
-                }
-              },
+            Row(
+              children: [
+                Expanded(
+                  child: TextFormField(
+                    readOnly: true,
+                    decoration: InputDecoration(
+                      labelText: 'Date limite (optionnel)',
+                      prefixIcon: const Icon(Icons.calendar_today),
+                      border: const OutlineInputBorder(),
+                      suffixText: _dueDate != null
+                          ? '${_dueDate!.day}/${_dueDate!.month}/${_dueDate!.year}'
+                          : null,
+                    ),
+                    enabled: !_isLoading,
+                    onTap: () async {
+                      final date = await showDatePicker(
+                        context: context,
+                        initialDate: DateTime.now(),
+                        firstDate: DateTime.now(),
+                        lastDate: DateTime(2030),
+                      );
+                      if (date != null) {
+                        setState(() {
+                          _dueDate = date;
+                        });
+                      }
+                    },
+                  ),
+                ),
+                const SizedBox(width: 12),
+                Expanded(
+                  child: TextFormField(
+                    readOnly: true,
+                    decoration: InputDecoration(
+                      labelText: 'Heure (optionnel)',
+                      prefixIcon: const Icon(Icons.access_time),
+                      border: const OutlineInputBorder(),
+                      suffixText: _dueTime != null
+                          ? '${_dueTime!.hour.toString().padLeft(2, '0')}:${_dueTime!.minute.toString().padLeft(2, '0')}'
+                          : null,
+                    ),
+                    enabled: !_isLoading && _dueDate != null,
+                    onTap: () async {
+                      final time = await showTimePicker(
+                        context: context,
+                        initialTime: _dueTime ?? TimeOfDay.now(),
+                      );
+                      if (time != null) {
+                        setState(() {
+                          _dueTime = time;
+                        });
+                      }
+                    },
+                  ),
+                ),
+              ],
             ),
             const SizedBox(height: 24),
             Mutation(
@@ -156,6 +189,9 @@ class _AddTaskFormState extends State<AddTaskForm> {
                               'priority': _priority,
                               'datalimited': _dueDate != null
                                   ? _dueDate!.toIso8601String().split('T')[0]
+                                  : null,
+                              'timelimited': _dueTime != null
+                                  ? '${_dueTime!.hour.toString().padLeft(2, '0')}:${_dueTime!.minute.toString().padLeft(2, '0')}'
                                   : null,
                             });
                           }

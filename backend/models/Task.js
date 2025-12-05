@@ -6,6 +6,7 @@ const taskSchema = new Schema({
   decription: { type: String, required: true },
   completed: { type: Boolean, default: false },
   datalimited: { type: Date },
+  timelimited: { type: String }, // Format HH:mm (ex: "14:30")
   // priorité de la tâche (LOW, MEDIUM, HIGH)
   priority: {
     type: String,
