@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:graphql_flutter/graphql_flutter.dart';
 import 'screens/login_screen.dart';
 import 'services/graphql_client.dart';
+import 'screens/SplashScreen.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
@@ -58,7 +59,7 @@ class MyApp extends StatelessWidget {
               ),
             ),
           ),
-          home: const LoginScreen(),
+          home: const SplashScreen(),
         ),
       ),
     );

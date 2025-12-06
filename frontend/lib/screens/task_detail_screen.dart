@@ -286,55 +286,7 @@ class TaskDetailScreen extends StatelessWidget {
 
                 const SizedBox(height: 20),
 
-                // Date limite
-                _buildDetailCard(
-                  icon: Icons.calendar_today_outlined,
-                  title: 'Date limite',
-                  iconColor: Colors.blue.shade600,
-                  content: Row(
-                    children: [
-                      Container(
-                        width: 40,
-                        height: 40,
-                        decoration: BoxDecoration(
-                          color: Colors.blue.shade50,
-                          borderRadius: BorderRadius.circular(12),
-                        ),
-                        child: Icon(
-                          Icons.calendar_month_outlined,
-                          color: Colors.blue.shade600,
-                          size: 20,
-                        ),
-                      ),
-                      const SizedBox(width: 12),
-                      Expanded(
-                        child: Column(
-                          crossAxisAlignment: CrossAxisAlignment.start,
-                          children: [
-                            Text(
-                              _formatDate(task['datalimited']),
-                              style: const TextStyle(
-                                fontSize: 16,
-                                fontWeight: FontWeight.w600,
-                                color: Colors.black,
-                              ),
-                            ),
-                            const SizedBox(height: 4),
-                            Text(
-                              'Échéance de la tâche',
-                              style: TextStyle(
-                                fontSize: 13,
-                                color: Colors.grey.shade600,
-                              ),
-                            ),
-                          ],
-                        ),
-                      ),
-                    ],
-                  ),
-                ),
-
-                const SizedBox(height: 20),
+           
 
                 // Statut
                 _buildDetailCard(
